@@ -7,7 +7,7 @@ from config import OPENAI_API_KEY, OPENAI_BASE_URL
 app = FastAPI()
 
 chat_model = ChatOpenAI(
-    model_name="qwen_plus",
+    model_name="qwen-plus",
     openai_api_key=OPENAI_API_KEY,
     openai_api_base=OPENAI_BASE_URL
 )
