@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from app.database import kb
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain.schema import SystemMessage, HumanMessage
 from config import OPENAI_API_KEY, OPENAI_BASE_URL
 
