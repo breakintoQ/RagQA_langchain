@@ -1,0 +1,44 @@
+{
+    "documents": [
+        {
+            "id": 1,
+            "title": "人工智能发展史",
+            "content": "人工智能（AI）起源于20世纪50年代，经历了符号主义、连接主义、统计学习等多个发展阶段...",
+            "published_date": "2023-10-15",
+            "source": "科技日报",
+            "tags": ["人工智能", "历史", "机器学习"]
+        },
+        {
+            "id": 2,
+            "title": "深度学习与神经网络",
+            "content": "深度学习是一种基于神经网络的机器学习方法，能够学习数据的多层次特征，在图像识别、自然语言处理等领域取得了突破...",
+            "published_date": "2023-09-20",
+            "source": "AI Weekly",
+            "tags": ["深度学习", "神经网络", "数据科学"]
+        },
+        {
+            "id": 3,
+            "title": "自然语言处理（NLP）基础",
+            "content": "自然语言处理（NLP）是计算机科学与人工智能的重要分支，涵盖文本分类、情感分析、机器翻译等任务...",
+            "published_date": "2023-08-10",
+            "source": "NLP Journal",
+            "tags": ["NLP", "文本分析", "计算语言学"]
+        },
+        {
+            "id": 4,
+            "title": "Transformer 详解",
+            "content": "Transformer 模型引入了自注意力机制（Self-Attention），能够高效处理序列数据，在 NLP 和计算机视觉中均有广泛应用...",
+            "published_date": "2024-01-05",
+            "source": "Deep Learning Conference",
+            "tags": ["Transformer", "自注意力", "神经网络"]
+        },
+        {
+            "id": 5,
+            "title": "大模型的挑战与未来",
+            "content": "随着 GPT-4、Claude、Gemini 等大模型的兴起，计算资源需求、数据隐私、安全性等问题成为新的挑战...",
+            "published_date": "2024-02-12",
+            "source": "AI 论坛",
+            "tags": ["大模型", "GPT-4", "数据隐私"]
+        }
+    ]
+}
