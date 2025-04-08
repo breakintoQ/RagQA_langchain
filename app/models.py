@@ -2,8 +2,11 @@ from sqlalchemy import Column, Integer, String, Text, ForeignKey, TIMESTAMP, fun
 from sqlalchemy.orm import relationship
 from .database import Base
 
+
+#数据库已有约束，只有主键和数据类型必需
 class User(Base):
-    __tablename__ = "users"
+
+    __tablename__ = "users"  # 指定数据库表名为 "users" 
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     username = Column(String(50), unique=True, nullable=False)

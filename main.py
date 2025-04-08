@@ -30,7 +30,10 @@ chat_model = ChatOpenAI(
     openai_api_base=OPENAI_BASE_URL
 )
 
+
 router = APIRouter()
+
+#创建一个 CryptContext 实例，用于管理密码的哈希和验证。
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class UserCreate(BaseModel):

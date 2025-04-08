@@ -15,12 +15,17 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 
 DATABASE_URL = "mysql+aiomysql://root:root@localhost:3306/rag_db"
 
+#用于创建异步数据库引擎
 engine = create_async_engine(DATABASE_URL, echo=True)
+#用于创建数据库会话
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, class_=AsyncSession)
+#这是 SQLAlchemy 提供的一个基类，用于定义 ORM 模型（即数据库表的类）
 Base = declarative_base()
 
 async def get_db():
+    #创建一个异步数据库会话，并在请求结束后自动关闭会话
     async with SessionLocal() as session:
+        #将会话对象返回给调用者（例如路由函数），以便在请求中使用。
         yield session
 
 
