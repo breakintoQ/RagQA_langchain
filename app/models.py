@@ -34,3 +34,13 @@ class File(Base):
     created_at = Column(TIMESTAMP, server_default=func.now())
 
     user = relationship("User")
+
+class Document(Base):
+    __tablename__ = "documents"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # 可选：关联用户
+    content = Column(Text, nullable=False)  # 文档内容
+    file_name = Column(String(255), nullable=True)  # 可选：存储文件名
+
+    user = relationship("User")  # 可选：关联用户
