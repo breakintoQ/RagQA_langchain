@@ -1,18 +1,19 @@
 from fastapi import FastAPI, HTTPException, Depends, UploadFile, File, APIRouter, Query
 from fastapi.middleware.cors import CORSMiddleware
 from langchain_openai import ChatOpenAI
-from langchain.schema import SystemMessage, HumanMessage
+from langchain.schema import  HumanMessage
 from pydantic import BaseModel
 from app.database import  get_user_history, save_user_history,get_db
 from config import OPENAI_API_KEY, OPENAI_BASE_URL
 from app.auth import verify_token, create_access_token
-from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 from app.knowledgeBase import KnowledgeBase
 from app.models import User
 from passlib.context import CryptContext
 from fastapi import BackgroundTasks
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from app.memory import CustomChatMessageHistory
 
 app = FastAPI()
 
@@ -83,41 +84,45 @@ async def login(user: UserLogin, db: AsyncSession = Depends(get_db)):
         "username": db_user.username
     }
 
-@app.post("/query/")
-async def query_rag(request: AuthenticatedQueryRequest, db: AsyncSession = Depends(get_db)):
-    """
-    根据用户的问题，从知识库中检索相关内容并生成回答
-    """
+@router.post("/query/")
+async def query_lcel(request: AuthenticatedQueryRequest, db: AsyncSession = Depends(get_db)):
     try:
-        user_id = verify_token(request.token)  # 验证并获取用户 ID
+        user_id = verify_token(request.token)
         question = request.question
 
-        # 创建知识库实例
+        # 创建知识库索引
         kb = KnowledgeBase()
-
-        # 创建索引（如果尚未创建）
         if not kb.index:
             await kb.create_faiss_index(user_id, db)
+        retrieved_docs = kb.index.similarity_search(question, k=3)
+        context = "\n".join([doc.page_content for doc in retrieved_docs])
+        
+        prompt = ChatPromptTemplate.from_messages(
+            [("system", "你是一个知识库助手，会根据历史对话与给定信息回答问题。"),
+             MessagesPlaceholder(variable_name="history"),
+             ("user", "请根据以下资料回答问题：\n{input}")]
+        )
+        
+        customer_message_history = CustomChatMessageHistory(user_id=user_id)
 
-        # 从知识库中检索相关内容
-        retrieved_texts = kb.index.similarity_search(question, k=3)
 
-        # 获取用户的对话历史
-        history = get_user_history(user_id)
-        context = "\n".join(history)  # 将历史对话作为上下文
-        context += "\n" + "\n".join([r.page_content for r in retrieved_texts])
+        config = {"configurable": {"session_id": user_id}}  
+        # 3. 构建 LCEL Chain
+        chain = prompt | chat_model
 
-        # 生成回答
-        response = chat_model([
-            SystemMessage(content="你是一个知识库助手，基于提供的内容回答问题。"),
-            HumanMessage(content=f"已知信息：{context}\n\n问题：{question}")
-        ])
+        # 4. 执行链，自动记录历史
+        answer = await chain.ainvoke(
+            {
+                "input": f"{context}\n\n问题：{question}",
+                "history": customer_message_history.get_session_history(),
+            },
+            config=config,
+        )
 
-        # 更新历史对话
-        history.append(f"问题: {question}\n回答: {response.content}")
-        save_user_history(user_id, history)
-
-        return {"answer": response.content}
+        customer_message_history.add_message(HumanMessage(content=question))
+        customer_message_history.add_message(answer)
+        
+        return {"answer": answer.content}
     except Exception as e:
         print(f"❌ 查询失败: {e}")
         raise HTTPException(status_code=500, detail="查询失败")

@@ -41,18 +41,19 @@ class KnowledgeBase:
     async def save_documents_to_db(self, documents, user_id, db: AsyncSession):
         """将文档保存到数据库"""
         try:
-            for doc in documents:
-                if not doc.get("content"):  # 检查文档内容是否为空
-                    print(f"跳过空文档: {doc}")
-                    continue
-                new_doc = Document(
-                    user_id=user_id,
-                    content=doc.get("content", ""),
-                    file_name=doc.get("file_name", None)
-                )
-                db.add(new_doc)
-            await db.commit()
-            print(f"成功保存 {len(documents)} 条文档到数据库")
+            async with db.begin():  # 确保会话在上下文中
+                for doc in documents:
+                    if not doc.get("content"):  # 检查文档内容是否为空
+                        print(f"跳过空文档: {doc}")
+                        continue
+                    new_doc = Document(
+                        user_id=user_id,
+                        content=doc.get("content", ""),
+                        file_name=doc.get("file_name", None)
+                    )
+                    db.add(new_doc)
+                await db.commit()
+                print(f"成功保存 {len(documents)} 条文档到数据库")
         except Exception as e:
             print("❌ 保存文档到数据库失败:", e)
             await db.rollback()
@@ -66,9 +67,10 @@ class KnowledgeBase:
             if offset is not None:
                 query = query.offset(offset)
 
-            result = await db.execute(query)
-            documents = result.scalars().all()
-            return [{"content": doc.content, "file_name": doc.file_name} for doc in documents]
+            async with db.begin():  # 确保会话在上下文中
+                result = await db.execute(query)
+                documents = result.scalars().all()
+                return [{"content": doc.content, "file_name": doc.file_name} for doc in documents]
         except Exception as e:
             print("❌ 从数据库加载文档失败:", e)
             return []
